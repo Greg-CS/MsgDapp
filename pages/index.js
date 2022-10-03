@@ -6,7 +6,7 @@ import {messageAbi} from '../constants/abi'
 import {useSigner} from '../hooks/useSigner'
 import {useMoralis} from 'react-moralis'
 import { Input, Container, Button, Center } from '@chakra-ui/react'
-
+import { errorToast, infoToast, successToast } from "./_app";
 
 export default function Home() {
   
@@ -24,13 +24,22 @@ export default function Home() {
     await logout();
   }
   const setMessage = async () => {
+    if (!isAuthenticated) {
+      infoToast("Please login to set message.");
+      return;
+    } else if (messageBlock === '') {
+      infoToast("Please enter a message.");
+      return;
+    } 
+    else {
     try {
       const message = await messageContractInstance.setMessage(messageBlock);
       setMessageBlock(message);
-      console.log(message);
+      successToast('Success', 'Message set successfully');
     } catch (error) {
-      console.log(error);
+      errorToast("Error", error.message);
     }
+  }
   }
 
   const handleInputChange = (e) => {
@@ -57,7 +66,7 @@ export default function Home() {
           }
         </Container>
         <br/>
-          <br/>
+        <br/>
         <Container>
           <Input placeholder='Change Me!' onChange={handleInputChange}/>
           <br/>
@@ -66,6 +75,7 @@ export default function Home() {
             <Button onClick={setMessage}>Set new message</Button>
           </Center>
         </Container>
+        
       </main>
     </div>
   )
