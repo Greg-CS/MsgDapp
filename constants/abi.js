@@ -25,6 +25,19 @@ export const messageAbi = [
 	},
 	{
 		"inputs": [],
+		"name": "getMessage",
+		"outputs": [
+			{
+				"internalType": "string",
+				"name": "",
+				"type": "string"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [],
 		"name": "message",
 		"outputs": [
 			{
