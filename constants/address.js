@@ -1,1 +1,1 @@
-export const messageAddress = "0x659664751bd6a2e142d0b4ed4f40ee757422f951";
+export const messageAddress = "0xd8b934580fcE35a11B58C6D73aDeE468a2833fa8";

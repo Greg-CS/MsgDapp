@@ -2,9 +2,19 @@ export const messageAbi = [
 	{
 		"inputs": [
 			{
+				"internalType": "address",
+				"name": "recipient",
+				"type": "address"
+			},
+			{
 				"internalType": "string",
 				"name": "newMessage",
 				"type": "string"
+			},
+			{
+				"internalType": "bytes",
+				"name": "signature",
+				"type": "bytes"
 			}
 		],
 		"name": "setMessage",
@@ -25,7 +35,7 @@ export const messageAbi = [
 	},
 	{
 		"inputs": [],
-		"name": "getMessage",
+		"name": "_message",
 		"outputs": [
 			{
 				"internalType": "string",
@@ -38,7 +48,20 @@ export const messageAbi = [
 	},
 	{
 		"inputs": [],
-		"name": "message",
+		"name": "etherAccount",
+		"outputs": [
+			{
+				"internalType": "address",
+				"name": "",
+				"type": "address"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "getMessage",
 		"outputs": [
 			{
 				"internalType": "string",

@@ -4,26 +4,32 @@ import { messageAddress } from '../constants/address'
 import { ethers } from 'ethers'
 import { messageAbi } from '../constants/abi'
 import { useSigner } from '../hooks/useSigner'
-import { useMoralis } from 'react-moralis'
-import { Input, Container, Button, Center, Text, Heading } from '@chakra-ui/react'
+import { useMoralis, useChain } from 'react-moralis'
+import { Input, Container, Button, Center, Text } from '@chakra-ui/react'
 import { errorToast, infoToast, successToast } from "./_app";
 
 export default function Home() {
   
   const { signer } = useSigner();
-  console.log(signer);
+  const { switchNetwork } = useChain();
   const messageContractInstance = useMemo(() => new ethers.Contract(messageAddress, messageAbi, signer), [signer]);
   const [messageBlock, setMessageBlock] = useState('');
-  const { authenticate, isAuthenticated, logout, user, account } = useMoralis();
+  const { authenticate, isAuthenticated, logout, account, chainId } = useMoralis();
 
   useEffect(() => {
-    if (isAuthenticated) {
-      console.log('isAuthenticated');
-    } else {
-      login();
+    login();
+  }, []);
+
+    const handleSwitchChain = async () => {
+      if(chainId !== '0x3'){
+        await switchNetwork('0x3');
+      }
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isAuthenticated]);
+  
+    useEffect(() => {
+      if(chainId !== '0x3' && account) handleSwitchChain();
+      // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [chainId, account])
 
   const login = async () => {
     authenticate({ signingMessage: "Sign message to login." });
@@ -42,8 +48,11 @@ export default function Home() {
     } 
     else {
     try {
-      const message = await messageContractInstance.setMessage(messageBlock);
-      successToast('Success', 'Message set successfully');
+      const message = await messageContractInstance.setMessage(messageBlock, account, );
+      const tx = await message.wait();
+      if (tx.status === 1) {
+        successToast('Success', 'Message set successfully');
+      }
     } catch (error) {
       errorToast("Error", error.message);
     }
@@ -53,7 +62,6 @@ export default function Home() {
   const getMessage = async () => {
     if (!isAuthenticated) {
       infoToast("Please login to get message.");
-      return;
     } else {
     try {
       const message = await messageContractInstance.getMessage();
@@ -71,47 +79,44 @@ export default function Home() {
   }
 
   return (
-    <div>
+    <>
       <Head>
         <title>Message Dapp</title>
         <meta name="description" content="Simple Dapp" />
         <link rel="icon" href="/favicon.ico" />
       </Head>
 
-      <main>
-        <br/>
-        <br/>
+      <Container style={{display: "grid", gap: "10px"}} mt={12}>
+
         <Container style={{display: "flex", justifyContent: "space-around", alignItems: "center"}}>
-          <h1>Message Dapp</h1>
+          <Text>Message Dapp</Text>
           {!isAuthenticated ? 
           <Button onClick={login}>Login</Button>
           :
           <Button onClick={logOut}>Logout</Button>
           }
         </Container>
-        <br/>
-        <br/>
-        <Text style={{textAlign: "center"}}>
-          Logged in user: {account}
-        </Text>
-        <br/>
-        <br/>
-        <Container>
-          <Input placeholder='Change Me!' onChange={handleInputChange}/>
-          <br/>
-          <br/>
-          <Center>
-            <Button onClick={setMessage}>Set new message</Button>
-          </Center>
-        </Container>
-        <br/>
-        <br/>
-        <Container style={{display: "flex", justifyContent: "space-around", alignItems: "center"}}>
-          <Text>Changed Message: </Text>
-          <Button onClick={getMessage}>{messageBlock}</Button>
-        </Container>
+
+        {isAuthenticated ?
+          <Container  style={{display: "grid", gap: "30px"}}>
+            <Text style={{textAlign: "center"}}>Logged in user: {account}</Text>
+            <Container style={{display: "grid", gap: "30px"}}>
+            <Input placeholder='Write a message!' onChange={handleInputChange}/>
+            <Center>
+              <Button onClick={setMessage}>Set new message</Button>
+            </Center>
+            </Container>
+
+            <Container style={{display: "flex", justifyContent: "space-around", alignItems: "center"}}>
+              <Text>Hidden Message: </Text>
+              <Button onClick={getMessage}>Click me</Button>
+            </Container>
+          </Container>
+          :
+          <Text style={{textAlign: "center"}}>Please login to use the Dapp</Text>
+        }
         
-      </main>
-    </div>
+      </Container>
+    </>
   )
 }
