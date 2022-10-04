@@ -14,22 +14,23 @@ export default function Home() {
   const { switchNetwork } = useChain();
   const messageContractInstance = useMemo(() => new ethers.Contract(messageAddress, messageAbi, signer), [signer]);
   const [messageBlock, setMessageBlock] = useState('');
+  const [showMessage, setShowMessage] = useState(false);
   const { authenticate, isAuthenticated, logout, account, chainId } = useMoralis();
 
-  useEffect(() => {
-    login();
-  }, []);
+  // useEffect(() => {
+  //   login();
+  // }, []);
 
-    const handleSwitchChain = async () => {
-      if(chainId !== '0x3'){
-        await switchNetwork('0x3');
-      }
+  const handleSwitchChain = async () => {
+    if(chainId !== '0x3'){
+      await switchNetwork('0x3');
     }
-  
-    useEffect(() => {
-      if(chainId !== '0x3' && account) handleSwitchChain();
-      // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [chainId, account])
+  }
+
+  useEffect(() => {
+    if(chainId !== '0x3' && account) handleSwitchChain();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [chainId, account])
 
   const login = async () => {
     authenticate({ signingMessage: "Sign message to login." });
@@ -42,13 +43,16 @@ export default function Home() {
     if (!isAuthenticated) {
       infoToast("Please login to set message.");
       return;
-    } else if (messageBlock === '') {
+    }
+    if (messageBlock === '') {
       infoToast("Please enter a message.");
       return;
     } 
     else {
     try {
-      const message = await messageContractInstance.setMessage(messageBlock, account, );
+      const messageHash = ethers.utils.solidityKeccak256(['string'], [messageBlock]);
+      const signature = await signer.signMessage(ethers.utils.arrayify(messageHash));
+      const message = await messageContractInstance.setMessage(messageBlock, signature);
       const tx = await message.wait();
       if (tx.status === 1) {
         successToast('Success', 'Message set successfully');
@@ -106,7 +110,7 @@ export default function Home() {
               <Button onClick={setMessage}>Set new message</Button>
             </Center>
             </Container>
-
+         
             <Container style={{display: "flex", justifyContent: "space-around", alignItems: "center"}}>
               <Text>Hidden Message: </Text>
               <Button onClick={getMessage}>Click me</Button>
