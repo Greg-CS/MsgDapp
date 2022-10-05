@@ -17,10 +17,6 @@ export default function Home() {
   const [showMessage, setShowMessage] = useState(false);
   const { authenticate, isAuthenticated, logout, account, chainId } = useMoralis();
 
-  // useEffect(() => {
-  //   login();
-  // }, []);
-
   const handleSwitchChain = async () => {
     if(chainId !== '0x3'){
       await switchNetwork('0x3');
@@ -39,6 +35,7 @@ export default function Home() {
   const logOut = async () => {
     await logout();
   }
+
   const setMessage = async () => {
     if (!isAuthenticated) {
       infoToast("Please login to set message.");
@@ -50,7 +47,7 @@ export default function Home() {
     } 
     else {
     try {
-      const messageHash = ethers.utils.solidityKeccak256(['string'], [messageBlock]);
+      const messageHash = ethers.utils.solidityKeccak256(['address', 'string'], [account, messageBlock]);
       const signature = await signer.signMessage(ethers.utils.arrayify(messageHash));
       const message = await messageContractInstance.setMessage(messageBlock, signature);
       const tx = await message.wait();
@@ -111,13 +108,19 @@ export default function Home() {
             </Center>
             </Container>
          
-            <Container style={{display: "flex", justifyContent: "space-around", alignItems: "center"}}>
+            <Container style={{display: "grid", textAlign: "center", gap: "10px"}}>
               <Text>Hidden Message: </Text>
               <Button onClick={getMessage}>Click me</Button>
             </Container>
           </Container>
           :
           <Text style={{textAlign: "center"}}>Please login to use the Dapp</Text>
+        }
+
+        {!showMessage ?
+          <Text style={{textAlign: "center"}}>Message: {messageBlock}</Text>
+          :
+          null
         }
         
       </Container>
